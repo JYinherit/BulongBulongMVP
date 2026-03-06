@@ -1,0 +1,5 @@
+{
+  "name": "Dangerous Token MVP",
+  "description": "A console-like MVP for the card game 'Dangerous Token' featuring a state machine, passing subsystem, and dying resolution.",
+  "requestFramePermissions": []
+}
