@@ -82,6 +82,24 @@ export class GameEngine {
     this.notify();
   }
 
+  addPlayer(name?: string) {
+    const idx = this.state.players.length + 1;
+    const newId = `p${idx}_${generateId()}`;
+    const newPlayer: Player = {
+      id: newId,
+      name: name || `玩家 ${String.fromCharCode(64 + idx)}`,
+      faction: Faction.THUMB,
+      hand: [],
+      field: [],
+      state: PlayerState.ALIVE,
+      hasPassed: false,
+    };
+    this.state.players.push(newPlayer);
+    this.log(`GM 添加了新玩家: ${newPlayer.name}。`);
+    this.notify();
+    return newPlayer;
+  }
+
   renamePlayer(playerId: string, newName: string) {
     const p = this.getPlayer(playerId);
     const oldName = p.name;
@@ -333,13 +351,17 @@ export class GameEngine {
       if (!targetId) throw new Error("DELIVER method requires a target");
       queue = [targetId];
     } else {
-      const idx = this.state.currentPlayerIndex;
-      const n = this.state.players.length;
-      queue = [
-        this.state.players[(idx + 1) % n].id,
-        this.state.players[(idx + 2) % n].id,
-        this.state.players[(idx + 3) % n].id,
-      ].filter(id => this.getPlayer(id).state !== PlayerState.DEAD);
+      // Build a full round-robin queue: all alive players except the initiator, in seat order
+      const allPlayers = this.state.players;
+      const n = allPlayers.length;
+      const initiatorIdx = allPlayers.findIndex(p => p.id === initiator.id);
+      queue = [];
+      for (let step = 1; step < n; step++) {
+        const candidate = allPlayers[(initiatorIdx + step) % n];
+        if (candidate.state !== PlayerState.DEAD) {
+          queue.push(candidate.id);
+        }
+      }
     }
 
     this.state.passState = {

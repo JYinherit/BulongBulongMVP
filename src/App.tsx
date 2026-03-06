@@ -49,6 +49,15 @@ export default function App() {
     }
   }, [gameState?.logs, autoScroll]);
 
+  useEffect(() => {
+    if (!gameState) return;
+    const alivePlayers = gameState.players.filter(p => p.state !== PlayerState.DEAD);
+    const targetStillAlive = alivePlayers.some(p => p.id === dealerTarget);
+    if (!targetStillAlive && alivePlayers.length > 0) {
+      setDealerTarget(alivePlayers[0].id);
+    }
+  }, [gameState?.players]);
+
   if (!gameMode || !engine || !gameState) {
     return (
       <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center text-zinc-100 font-sans">
@@ -118,6 +127,7 @@ export default function App() {
                   const prev = new Set(dealerProps); e.target.checked ? prev.add(CardProperty.DANGER) : prev.delete(CardProperty.DANGER); setDealerProps(Array.from(prev));
                 }} /> <span className="text-zinc-400">危险</span></label>
                 <button disabled={dealerProps.length === 0} onClick={() => { engine.dealerGrantCard(dealerTarget, dealerCardName, dealerProps); setDealerCardName(''); }} className="px-3 py-1 bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white font-medium rounded transition-colors whitespace-nowrap">发给玩家</button>
+                <button onClick={() => engine.addPlayer()} className="px-3 py-1 bg-emerald-700 hover:bg-emerald-600 text-white font-medium rounded transition-colors whitespace-nowrap">➕ 增加玩家</button>
               </div>
             </div>
             <div className="w-px h-12 bg-zinc-800 hidden xl:block"></div>
@@ -254,7 +264,7 @@ export default function App() {
                                 {pendingDeliverCardId === card.id ? (
                                   <>
                                     <div className="text-[10px] text-zinc-300 font-medium mb-1 border-b border-zinc-700 w-full text-center pb-1">送给谁？</div>
-                                    <div className="flex flex-col gap-1 w-full px-2 overflow-y-auto" style={{ maxHeight: '70px' }}>
+                                    <div className="flex flex-col gap-1 w-full px-2 overflow-y-auto" style={{ maxHeight: '140px' }}>
                                       {gameState.players.filter(p => p.id !== player.id && p.state !== PlayerState.DEAD).map(p => (
                                         <button key={p.id} onClick={(e) => { e.stopPropagation(); engine.initiatePass(card.id, PassMethod.DELIVER, p.id); setPendingDeliverCardId(null); }} className="text-[10px] bg-indigo-600 hover:bg-indigo-500 py-0.5 rounded text-white truncate px-1">
                                           {p.name}
