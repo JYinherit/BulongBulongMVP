@@ -1,4 +1,4 @@
-# Dangerous Token MVP
+# BulongBulong MVP
 
 一款以情报传递为核心机制的多人桌游模拟器（网页版 MVP）。
 
