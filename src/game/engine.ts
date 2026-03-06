@@ -17,19 +17,19 @@ export class GameEngine {
       const factions = [Faction.FINGER, Faction.FINGER, Faction.THUMB, Faction.THUMB, Faction.BUS, Faction.MYSTERY];
       factions.sort(() => Math.random() - 0.5);
       players = [
-        { id: 'p1', name: 'Player A', faction: factions[0], hand: [], field: [], state: PlayerState.ALIVE, hasPassed: false },
-        { id: 'p2', name: 'Player B', faction: factions[1], hand: [], field: [], state: PlayerState.ALIVE, hasPassed: false },
-        { id: 'p3', name: 'Player C', faction: factions[2], hand: [], field: [], state: PlayerState.ALIVE, hasPassed: false },
-        { id: 'p4', name: 'Player D', faction: factions[3], hand: [], field: [], state: PlayerState.ALIVE, hasPassed: false },
-        { id: 'p5', name: 'Player E', faction: factions[4], hand: [], field: [], state: PlayerState.ALIVE, hasPassed: false },
-        { id: 'p6', name: 'Player F', faction: factions[5], hand: [], field: [], state: PlayerState.ALIVE, hasPassed: false },
+        { id: 'p1', name: '玩家 A', faction: factions[0], hand: [], field: [], state: PlayerState.ALIVE, hasPassed: false },
+        { id: 'p2', name: '玩家 B', faction: factions[1], hand: [], field: [], state: PlayerState.ALIVE, hasPassed: false },
+        { id: 'p3', name: '玩家 C', faction: factions[2], hand: [], field: [], state: PlayerState.ALIVE, hasPassed: false },
+        { id: 'p4', name: '玩家 D', faction: factions[3], hand: [], field: [], state: PlayerState.ALIVE, hasPassed: false },
+        { id: 'p5', name: '玩家 E', faction: factions[4], hand: [], field: [], state: PlayerState.ALIVE, hasPassed: false },
+        { id: 'p6', name: '玩家 F', faction: factions[5], hand: [], field: [], state: PlayerState.ALIVE, hasPassed: false },
       ];
     } else {
       players = [
-        { id: 'p1', name: 'Player A', faction: Faction.THUMB, hand: [], field: [], state: PlayerState.ALIVE, hasPassed: false },
-        { id: 'p2', name: 'Player B', faction: Faction.BUS, hand: [], field: [], state: PlayerState.ALIVE, hasPassed: false },
-        { id: 'p3', name: 'Player C', faction: Faction.THUMB, hand: [], field: [], state: PlayerState.ALIVE, hasPassed: false },
-        { id: 'p4', name: 'Player D', faction: Faction.BUS, hand: [], field: [], state: PlayerState.ALIVE, hasPassed: false },
+        { id: 'p1', name: '玩家 A', faction: Faction.THUMB, hand: [], field: [], state: PlayerState.ALIVE, hasPassed: false },
+        { id: 'p2', name: '玩家 B', faction: Faction.BUS, hand: [], field: [], state: PlayerState.ALIVE, hasPassed: false },
+        { id: 'p3', name: '玩家 C', faction: Faction.THUMB, hand: [], field: [], state: PlayerState.ALIVE, hasPassed: false },
+        { id: 'p4', name: '玩家 D', faction: Faction.BUS, hand: [], field: [], state: PlayerState.ALIVE, hasPassed: false },
       ];
     }
 
@@ -41,7 +41,7 @@ export class GameEngine {
       deck.push({
         id: generateId(),
         templateId: 'card_random',
-        name: `Intel ${i + 1}`,
+        name: `情报 ${i + 1}`,
         properties: shuffled.slice(0, count),
         currentZone: Zone.DECK,
         ownerId: null,
@@ -69,7 +69,7 @@ export class GameEngine {
       passState: null,
       actionStack: [],
       dyingState: null,
-      logs: ['Game initialized in ' + mode + ' mode.'],
+      logs: [`游戏在 ${mode} 模式下初始化完成。`],
       winner: null,
       mode
     };
@@ -78,7 +78,7 @@ export class GameEngine {
   changePlayerFaction(playerId: string, faction: Faction) {
     const p = this.getPlayer(playerId);
     p.faction = faction;
-    this.log(`GM changed ${p.name}'s faction to ${faction}.`);
+    this.log(`GM 将 ${p.name} 的阵营修改为了 ${faction}。`);
     this.notify();
   }
 
@@ -86,7 +86,7 @@ export class GameEngine {
     const p = this.getPlayer(playerId);
     const oldName = p.name;
     p.name = newName;
-    this.log(`Player '${oldName}' renamed to '${newName}'.`);
+    this.log(`玩家 '${oldName}' 已更名为 '${newName}'。`);
     this.notify();
   }
 
@@ -113,42 +113,42 @@ export class GameEngine {
     const p = this.getCurrentPlayer();
     switch (this.state.currentPhase) {
       case TurnPhase.PREP:
-        this.log(`--- ${p.name}'s Turn ---`);
-        this.log(`${p.name} PREP phase starts.`);
+        this.log(`--- ${p.name} 的回合 ---`);
+        this.log(`${p.name} 的 准备阶段 开始。`);
         p.hasPassed = false;
         this.state.currentPhase = TurnPhase.DRAW;
         this.nextPhase();
         break;
       case TurnPhase.DRAW:
-        if (this.state.mode === import('./types').GameMode.GM) {
-          this.log(`${p.name} DRAW phase starts. Waiting for GM to deal cards... (Click Next Phase when done)`);
+        if (this.state.mode === GameMode.GM) {
+          this.log(`${p.name} 的 抽牌阶段 开始。等待 GM 发牌... (完成后点击“进入下一阶段”)`);
           // We do not auto-draw cards anymore in GM mode. Game pauses here, GM uses panel.
           this.notify();
         } else {
-          this.log(`${p.name} DRAW phase starts.`);
+          this.log(`${p.name} 的 抽牌阶段 开始。`);
           this.drawCards(p.id, 2);
           this.state.currentPhase = TurnPhase.ACTION;
           this.notify();
         }
         break;
       case TurnPhase.ACTION:
-        this.log(`${p.name} ACTION phase ends. Moving to PASS phase.`);
+        this.log(`${p.name} 的 行动阶段 结束。进入 传递阶段。`);
         this.state.currentPhase = TurnPhase.PASS;
         this.notify();
         break;
       case TurnPhase.PASS:
         if (!p.hasPassed) {
-          this.log(`Error: ${p.name} must pass a card before ending PASS phase.`);
+          this.log(`错误: ${p.name} 必须在结束 传递阶段 前传递一张手牌。`);
           return;
         }
-        this.log(`${p.name} PASS phase ends. Moving to CLEANUP phase.`);
+        this.log(`${p.name} 的 传递阶段 结束。进入 弃牌阶段。`);
         this.state.currentPhase = TurnPhase.CLEANUP;
         this.notify();
         break;
       case TurnPhase.CLEANUP:
-        this.log(`${p.name} CLEANUP phase starts.`);
+        this.log(`${p.name} 的 弃牌阶段 开始。`);
         if (p.hand.length > 6) {
-          this.log(`${p.name} has more than 6 cards. Waiting for manual discard.`);
+          this.log(`${p.name} 手牌大于6张。请等待玩家手动弃牌。`);
           this.state.discardState = {
             active: true,
             playerId: p.id,
@@ -161,7 +161,7 @@ export class GameEngine {
         this.nextPhase();
         break;
       case TurnPhase.END:
-        this.log(`${p.name} END phase.`);
+        this.log(`${p.name} 的 结束阶段。`);
         this.state.currentPlayerIndex = (this.state.currentPlayerIndex + 1) % this.state.players.length;
         while (this.getCurrentPlayer().state === PlayerState.DEAD) {
           this.state.currentPlayerIndex = (this.state.currentPlayerIndex + 1) % this.state.players.length;
@@ -176,7 +176,7 @@ export class GameEngine {
     const ds = this.state.discardState;
     if (!ds || !ds.active || ds.playerId !== playerId) return;
     if (cardIds.length !== ds.requiredCount) {
-      this.log(`Must discard exactly ${ds.requiredCount} cards.`);
+      this.log(`必须准确丢弃 ${ds.requiredCount} 张手牌。`);
       return;
     }
 
@@ -191,7 +191,7 @@ export class GameEngine {
       }
     });
 
-    this.log(`${p.name} discarded ${cardIds.length} cards.`);
+    this.log(`${p.name} 丢弃了 ${cardIds.length} 张手牌。`);
     this.state.discardState = null;
     this.state.currentPhase = TurnPhase.END;
     this.nextPhase();
@@ -202,14 +202,14 @@ export class GameEngine {
       let idx = p.hand.findIndex(c => c.id === cardId);
       if (idx !== -1) {
         const c = p.hand.splice(idx, 1)[0];
-        this.log(`GM destroyed card '${c.name}' from ${p.name}'s hand.`);
+        this.log(`GM 销毁了 ${p.name} 手牌中的 '${c.name}'。`);
         this.notify();
         return;
       }
       idx = p.field.findIndex(c => c.id === cardId);
       if (idx !== -1) {
         const c = p.field.splice(idx, 1)[0];
-        this.log(`GM destroyed card '${c.name}' from ${p.name}'s field.`);
+        this.log(`GM 销毁了 ${p.name} 信物区中的 '${c.name}'。`);
         this.checkDyingState();
         this.checkWinConditions();
         this.notify();
@@ -247,7 +247,7 @@ export class GameEngine {
       } else if (targetZone === Zone.FIELD_TOKEN) {
         target.field.push(cardToMove);
       }
-      this.log(`GM transferred card '${cardToMove.name}' from ${fromPlayer.name} to ${target.name}'s ${targetZone === Zone.HAND ? 'hand' : 'field'}.`);
+      this.log(`GM 将 '${cardToMove.name}' 从 ${fromPlayer.name} 转移到了 ${target.name} 的 ${targetZone === Zone.HAND ? '手牌' : '信物区'}。`);
       this.checkDyingState();
       this.checkWinConditions();
       this.notify();
@@ -265,7 +265,7 @@ export class GameEngine {
       ownerId: p.id,
     };
     p.hand.push(card);
-    this.log(`GM dealt '${card.name}' to ${p.name}.`);
+    this.log(`GM 将 '${card.name}' 发给了 ${p.name}。`);
     this.checkDyingState();
     this.checkWinConditions();
     this.notify();
@@ -275,7 +275,7 @@ export class GameEngine {
     const p = this.getPlayer(playerId);
     for (let i = 0; i < count; i++) {
       if (this.state.deck.length === 0) {
-        this.log('Deck is empty!');
+        this.log('牌堆已空！');
         break;
       }
       const c = this.state.deck.pop()!;
@@ -283,7 +283,7 @@ export class GameEngine {
       c.ownerId = p.id;
       p.hand.push(c);
     }
-    this.log(`${p.name} drew ${count} cards.`);
+    this.log(`${p.name} 抽取了 ${count} 张手牌。`);
   }
 
   initiatePass(cardId: string, method: PassMethod, targetId?: string) {
@@ -291,11 +291,11 @@ export class GameEngine {
 
     if (this.state.mode !== GameMode.GM) {
       if (this.state.currentPhase !== TurnPhase.PASS && this.state.currentPhase !== TurnPhase.ACTION) {
-        this.log(`Cannot pass outside of ACTION/PASS phase.`);
+        this.log(`在 行动/传递 阶段之外无法发起传递。`);
         return;
       }
       if (initiator.hasPassed) {
-        this.log(`${initiator.name} has already passed a card this turn.`);
+        this.log(`${initiator.name} 本回合已经传递过情报了。`);
         return;
       }
     }
@@ -326,7 +326,7 @@ export class GameEngine {
     card.currentZone = Zone.ACTION_STACK;
 
     initiator.hasPassed = true;
-    this.log(`${initiator.name} initiates a ${method} pass with card ${card.name}.`);
+    this.log(`${initiator.name} 发起了一次 ${method} 传递，目标牌为 ${card.name}。`);
 
     let queue: string[] = [];
     if (method === PassMethod.DELIVER) {
@@ -352,7 +352,7 @@ export class GameEngine {
     };
 
     if (this.state.passState.currentTargetId) {
-      this.log(`Waiting for ${this.getPlayer(this.state.passState.currentTargetId).name} to ACCEPT or REJECT.`);
+      this.log(`等待 ${this.getPlayer(this.state.passState.currentTargetId).name} 接收 或 拒绝。`);
     } else {
       this.resolveBoomerang();
     }
@@ -364,7 +364,7 @@ export class GameEngine {
     if (!pass || pass.currentTargetId !== playerId) return;
 
     const p = this.getPlayer(playerId);
-    this.log(`${p.name} ACCEPTED the pass.`);
+    this.log(`${p.name} 接收 了传递的情报。`);
 
     pass.card.currentZone = Zone.FIELD_TOKEN;
     pass.card.ownerId = p.id;
@@ -381,12 +381,12 @@ export class GameEngine {
     if (!pass || pass.currentTargetId !== playerId) return;
 
     const p = this.getPlayer(playerId);
-    this.log(`${p.name} REJECTED the pass.`);
+    this.log(`${p.name} 拒绝 了传递的情报。`);
 
     pass.queue.shift();
     if (pass.queue.length > 0) {
       pass.currentTargetId = pass.queue[0];
-      this.log(`Pass moves to ${this.getPlayer(pass.currentTargetId).name}.`);
+      this.log(`传递目标转移至 ${this.getPlayer(pass.currentTargetId).name}。`);
     } else {
       this.resolveBoomerang();
     }
@@ -398,7 +398,7 @@ export class GameEngine {
     if (!pass) return;
 
     const initiator = this.getPlayer(pass.initiatorId);
-    this.log(`Pass queue empty! BOOMERANG triggered. ${initiator.name} must receive the card.`);
+    this.log(`传递队列已空！回旋飞镖触发，${initiator.name} 必须收下这张情报。`);
 
     pass.card.currentZone = Zone.FIELD_TOKEN;
     pass.card.ownerId = initiator.id;
@@ -417,14 +417,14 @@ export class GameEngine {
       const dangerCount = p.field.filter(c => c.properties.includes(CardProperty.DANGER)).length;
       if (dangerCount >= 3 && p.state !== PlayerState.DYING) {
         p.state = PlayerState.DYING;
-        this.log(`!!! ${p.name} has 3 DANGER cards and enters DYING state! !!!`);
+        this.log(`!!! ${p.name} 拥有 3 张危险情报，进入濒死状态！!!!`);
         this.state.dyingState = {
           active: true,
           playerId: p.id
         };
       } else if (dangerCount < 3 && p.state === PlayerState.DYING) {
         p.state = PlayerState.ALIVE;
-        this.log(`${p.name} is no longer DYING and returns to ALIVE state.`);
+        this.log(`${p.name} 不再处于濒死状态，恢复为存活状态。`);
         if (this.state.dyingState?.playerId === p.id) {
           this.state.dyingState = null;
         }
@@ -436,7 +436,7 @@ export class GameEngine {
     const p = this.getPlayer(playerId);
     if (p.state === PlayerState.DYING) {
       p.state = PlayerState.DEAD;
-      this.log(`${p.name} has DIED.`);
+      this.log(`${p.name} 已阵亡。`);
       p.hand.forEach(c => { c.currentZone = Zone.DISCARD; c.ownerId = null; this.state.discard.push(c); });
       p.field.forEach(c => { c.currentZone = Zone.DISCARD; c.ownerId = null; this.state.discard.push(c); });
       p.hand = [];
@@ -454,7 +454,7 @@ export class GameEngine {
     for (const p of thumbPlayers) {
       const topSecretCount = p.field.filter(c => c.properties.includes(CardProperty.TOP_SECRET)).length;
       if (topSecretCount >= 3) {
-        this.log(`THUMB faction wins! (${p.name} collected 3 TOP_SECRET)`);
+        this.log(`THUMB 阵营胜利！（${p.name} 集齐了 3 张绝密情报）`);
         this.state.winner = Faction.THUMB;
         this.state.players.forEach(p => p.state = p.faction === Faction.THUMB ? PlayerState.WIN : p.state);
         this.notify();
@@ -466,7 +466,7 @@ export class GameEngine {
     for (const p of busPlayers) {
       const importantCount = p.field.filter(c => c.properties.includes(CardProperty.TOP_SECRET) || c.properties.includes(CardProperty.PRECIOUS)).length;
       if (importantCount >= 6) {
-        this.log(`BUS faction wins! (${p.name} collected 6 IMPORTANT cards)`);
+        this.log(`BUS 阵营胜利！（${p.name} 集齐了 6 张重要情报）`);
         this.state.winner = Faction.BUS;
         this.state.players.forEach(p => p.state = p.faction === Faction.BUS ? PlayerState.WIN : p.state);
         this.notify();
@@ -478,7 +478,7 @@ export class GameEngine {
     for (const p of fingerPlayers) {
       const preciousCount = p.field.filter(c => c.properties.includes(CardProperty.PRECIOUS)).length;
       if (preciousCount >= 3) {
-        this.log(`FINGER faction wins! (${p.name} collected 3 PRECIOUS)`);
+        this.log(`FINGER 阵营胜利！（${p.name} 集齐了 3 张珍贵情报）`);
         this.state.winner = Faction.FINGER;
         this.state.players.forEach(p => p.state = p.faction === Faction.FINGER ? PlayerState.WIN : p.state);
         this.notify();

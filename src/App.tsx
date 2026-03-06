@@ -53,15 +53,15 @@ export default function App() {
     return (
       <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center text-zinc-100 font-sans">
         <h1 className="text-4xl font-bold tracking-tight mb-2">Dangerous Token MVP</h1>
-        <p className="text-zinc-400 mb-8">Select Game Mode</p>
+        <p className="text-zinc-400 mb-8">选择游戏模式</p>
         <div className="flex gap-4">
           <button onClick={() => startGame(GameMode.RANDOM)} className="px-6 py-4 bg-indigo-600 hover:bg-indigo-500 rounded-xl flex flex-col items-center gap-2 transition-transform hover:scale-105">
-            <span className="font-bold text-xl">Random Mode</span>
-            <span className="text-xs text-indigo-200">System deals starting cards automatically.</span>
+            <span className="font-bold text-xl">随机模式</span>
+            <span className="text-xs text-indigo-200">系统自动分发初始手牌。</span>
           </button>
           <button onClick={() => startGame(GameMode.GM)} className="px-6 py-4 bg-amber-600 hover:bg-amber-500 rounded-xl flex flex-col items-center gap-2 transition-transform hover:scale-105">
-            <span className="font-bold text-xl">GM Mode</span>
-            <span className="text-xs text-amber-200">Manual control over dealing and card states.</span>
+            <span className="font-bold text-xl">GM 模式</span>
+            <span className="text-xs text-amber-200">手动控制发牌与卡牌状态。</span>
           </button>
         </div>
       </div>
@@ -77,12 +77,12 @@ export default function App() {
         <header className="flex justify-between items-center border-b border-zinc-800 pb-4">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-zinc-100">Dangerous Token MVP</h1>
-            <p className="text-zinc-400 text-sm">Turn: {currentPlayer.name} | Phase: <span className="text-emerald-400 font-mono">{gameState.currentPhase}</span></p>
+            <p className="text-zinc-400 text-sm">回合: {currentPlayer.name} | 阶段: <span className="text-emerald-400 font-mono">{gameState.currentPhase}</span></p>
           </div>
           <div className="flex gap-2">
             {gameState.winner && (
               <div className="px-4 py-2 bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 rounded-lg font-bold">
-                {gameState.winner} WINS!
+                {gameState.winner} 胜利！
               </div>
             )}
             {!gameState.winner && !gameState.passState && !gameState.dyingState && (
@@ -90,45 +90,47 @@ export default function App() {
                 onClick={() => engine.nextPhase()}
                 className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium transition-colors"
               >
-                Next Phase
+                进入下一阶段
               </button>
             )}
           </div>
         </header>
 
         {/* Dealer (GM) Panel */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex flex-col xl:flex-row gap-6 items-start xl:items-center">
-          <div className="flex-1 w-full space-y-3">
-            <h3 className="text-sm font-bold text-zinc-300 uppercase tracking-wider flex items-center gap-2">🕹️ GM Dealer Panel</h3>
-            <div className="flex gap-2 text-sm flex-wrap items-center">
-              <select value={dealerTarget} onChange={e => setDealerTarget(e.target.value)} className="bg-zinc-950 border border-zinc-700 rounded px-2 py-1 text-zinc-200">
-                {gameState.players.filter(p => p.state !== PlayerState.DEAD).map(p => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
-                ))}
-              </select>
-              <input type="text" placeholder="Card Title" value={dealerCardName} onChange={e => setDealerCardName(e.target.value)} className="bg-zinc-950 border border-zinc-700 rounded px-2 py-1 flex-1 min-w-[120px]" />
-              <label className="flex items-center gap-1 cursor-pointer"><input type="checkbox" checked={dealerProps.includes(CardProperty.TOP_SECRET)} onChange={e => {
-                const prev = new Set(dealerProps); e.target.checked ? prev.add(CardProperty.TOP_SECRET) : prev.delete(CardProperty.TOP_SECRET); setDealerProps(Array.from(prev));
-              }} /> <span className="text-red-400">绝密</span></label>
-              <label className="flex items-center gap-1 cursor-pointer"><input type="checkbox" checked={dealerProps.includes(CardProperty.PRECIOUS)} onChange={e => {
-                const prev = new Set(dealerProps); e.target.checked ? prev.add(CardProperty.PRECIOUS) : prev.delete(CardProperty.PRECIOUS); setDealerProps(Array.from(prev));
-              }} /> <span className="text-blue-400">珍贵</span></label>
-              <label className="flex items-center gap-1 cursor-pointer"><input type="checkbox" checked={dealerProps.includes(CardProperty.DANGER)} onChange={e => {
-                const prev = new Set(dealerProps); e.target.checked ? prev.add(CardProperty.DANGER) : prev.delete(CardProperty.DANGER); setDealerProps(Array.from(prev));
-              }} /> <span className="text-zinc-400">危险</span></label>
-              <button disabled={dealerProps.length === 0} onClick={() => { engine.dealerGrantCard(dealerTarget, dealerCardName, dealerProps); setDealerCardName(''); }} className="px-3 py-1 bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white font-medium rounded transition-colors whitespace-nowrap">发给玩家</button>
+        {gameMode === GameMode.GM && (
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex flex-col xl:flex-row gap-6 items-start xl:items-center">
+            <div className="flex-1 w-full space-y-3">
+              <h3 className="text-sm font-bold text-zinc-300 uppercase tracking-wider flex items-center gap-2">🕹️ GM 发牌控制台</h3>
+              <div className="flex gap-2 text-sm flex-wrap items-center">
+                <select value={dealerTarget} onChange={e => setDealerTarget(e.target.value)} className="bg-zinc-950 border border-zinc-700 rounded px-2 py-1 text-zinc-200">
+                  {gameState.players.filter(p => p.state !== PlayerState.DEAD).map(p => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+                <input type="text" placeholder="卡牌标题" value={dealerCardName} onChange={e => setDealerCardName(e.target.value)} className="bg-zinc-950 border border-zinc-700 rounded px-2 py-1 flex-1 min-w-[120px]" />
+                <label className="flex items-center gap-1 cursor-pointer"><input type="checkbox" checked={dealerProps.includes(CardProperty.TOP_SECRET)} onChange={e => {
+                  const prev = new Set(dealerProps); e.target.checked ? prev.add(CardProperty.TOP_SECRET) : prev.delete(CardProperty.TOP_SECRET); setDealerProps(Array.from(prev));
+                }} /> <span className="text-red-400">绝密</span></label>
+                <label className="flex items-center gap-1 cursor-pointer"><input type="checkbox" checked={dealerProps.includes(CardProperty.PRECIOUS)} onChange={e => {
+                  const prev = new Set(dealerProps); e.target.checked ? prev.add(CardProperty.PRECIOUS) : prev.delete(CardProperty.PRECIOUS); setDealerProps(Array.from(prev));
+                }} /> <span className="text-blue-400">珍贵</span></label>
+                <label className="flex items-center gap-1 cursor-pointer"><input type="checkbox" checked={dealerProps.includes(CardProperty.DANGER)} onChange={e => {
+                  const prev = new Set(dealerProps); e.target.checked ? prev.add(CardProperty.DANGER) : prev.delete(CardProperty.DANGER); setDealerProps(Array.from(prev));
+                }} /> <span className="text-zinc-400">危险</span></label>
+                <button disabled={dealerProps.length === 0} onClick={() => { engine.dealerGrantCard(dealerTarget, dealerCardName, dealerProps); setDealerCardName(''); }} className="px-3 py-1 bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white font-medium rounded transition-colors whitespace-nowrap">发给玩家</button>
+              </div>
+            </div>
+            <div className="w-px h-12 bg-zinc-800 hidden xl:block"></div>
+            <div className="flex items-center gap-3">
+              <div className="text-sm text-zinc-400 font-medium">随机数:</div>
+              <input type="number" value={rngMin} onChange={e => setRngMin(Number(e.target.value))} className="w-16 bg-zinc-950 border border-zinc-700 rounded px-2 py-1 text-center" />
+              <span className="text-zinc-600">-</span>
+              <input type="number" value={rngMax} onChange={e => setRngMax(Number(e.target.value))} className="w-16 bg-zinc-950 border border-zinc-700 rounded px-2 py-1 text-center" />
+              <button onClick={() => setRngResult(Math.floor(Math.random() * (rngMax - rngMin + 1)) + rngMin)} className="px-3 py-1 bg-zinc-700 hover:bg-zinc-600 rounded text-sm text-white font-medium">掷骰</button>
+              {rngResult !== null && <div className="ml-2 w-8 h-8 flex items-center justify-center bg-indigo-500/20 text-indigo-300 font-bold rounded ring-1 ring-indigo-500/50">{rngResult}</div>}
             </div>
           </div>
-          <div className="w-px h-12 bg-zinc-800 hidden xl:block"></div>
-          <div className="flex items-center gap-3">
-            <div className="text-sm text-zinc-400 font-medium">RNG:</div>
-            <input type="number" value={rngMin} onChange={e => setRngMin(Number(e.target.value))} className="w-16 bg-zinc-950 border border-zinc-700 rounded px-2 py-1 text-center" />
-            <span className="text-zinc-600">-</span>
-            <input type="number" value={rngMax} onChange={e => setRngMax(Number(e.target.value))} className="w-16 bg-zinc-950 border border-zinc-700 rounded px-2 py-1 text-center" />
-            <button onClick={() => setRngResult(Math.floor(Math.random() * (rngMax - rngMin + 1)) + rngMin)} className="px-3 py-1 bg-zinc-700 hover:bg-zinc-600 rounded text-sm text-white font-medium">Roll</button>
-            {rngResult !== null && <div className="ml-2 w-8 h-8 flex items-center justify-center bg-indigo-500/20 text-indigo-300 font-bold rounded ring-1 ring-indigo-500/50">{rngResult}</div>}
-          </div>
-        </div>
+        )}
 
         {/* Players Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -182,12 +184,12 @@ export default function App() {
                     {isDying && <span className="text-xs px-2 py-1 rounded bg-red-500/20 text-red-400 animate-pulse">DYING</span>}
                     {isDead && <span className="text-xs px-2 py-1 rounded bg-zinc-800 text-zinc-500">DEAD</span>}
                   </h3>
-                  <div className="text-xs text-zinc-500">Hand: {player.hand.length}</div>
+                  <div className="text-xs text-zinc-500">手牌: {player.hand.length}</div>
                 </div>
 
                 {/* Field */}
                 <div className="mb-4">
-                  <div className="text-xs text-zinc-500 mb-2 uppercase tracking-wider">Field Tokens</div>
+                  <div className="text-xs text-zinc-500 mb-2 uppercase tracking-wider">信物区</div>
                   <div
                     className="flex flex-wrap gap-2 min-h-[60px] p-2 bg-zinc-950 rounded-lg border border-zinc-800/50"
                     onDragOver={gameMode === GameMode.GM ? (e) => e.preventDefault() : undefined}
@@ -201,16 +203,16 @@ export default function App() {
                     {player.field.map(card => (
                       <CardView key={card.id} card={card} isGM={gameMode === GameMode.GM} onTrash={() => engine.destroyCard(card.id)} />
                     ))}
-                    {player.field.length === 0 && <span className="text-zinc-700 text-sm italic my-auto">Empty</span>}
+                    {player.field.length === 0 && <span className="text-zinc-700 text-sm italic my-auto">空</span>}
                   </div>
                 </div>
 
                 {/* Hand */}
                 <div>
-                  <div className="text-xs text-zinc-500 mb-2 uppercase tracking-wider">Hand</div>
+                  <div className="text-xs text-zinc-500 mb-2 uppercase tracking-wider">手牌</div>
                   {gameState.discardState?.active && isCurrent && (
                     <div className="mb-3 p-3 bg-indigo-500/10 border border-indigo-500/30 rounded-lg">
-                      <p className="text-sm text-indigo-400 mb-2 font-medium">Discard phase: Select {gameState.discardState.requiredCount} cards</p>
+                      <p className="text-sm text-indigo-400 mb-2 font-medium">弃牌阶段：请选择 {gameState.discardState.requiredCount} 张牌</p>
                       <button
                         disabled={selectedToDiscard.length !== gameState.discardState.requiredCount}
                         onClick={() => {
@@ -219,7 +221,7 @@ export default function App() {
                         }}
                         className="px-3 py-1 bg-indigo-600 disabled:opacity-50 hover:bg-indigo-500 text-white text-sm rounded transition-all"
                       >
-                        Confirm Discard
+                        确认弃牌
                       </button>
                     </div>
                   )}
@@ -283,7 +285,7 @@ export default function App() {
                 {isTarget && gameState.passState && (
                   <div className="mt-4 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg flex flex-col items-center gap-3">
                     <div className="flex w-full justify-between items-center">
-                      <span className="text-sm text-amber-400 font-medium">Incoming pass: {
+                      <span className="text-sm text-amber-400 font-medium">收到传递: {
                         gameState.passState.method === PassMethod.SECRET ? '机密 (SECRET)' :
                           gameState.passState.method === PassMethod.REPORT ? '报告 (REPORT)' : '给予 (DELIVER)'
                       }</span>
@@ -292,16 +294,16 @@ export default function App() {
                       <CardView card={gameState.passState.card} hidden={gameState.passState.method !== PassMethod.REPORT} />
                     </div>
                     <div className="flex gap-2 border-t border-amber-500/30 pt-2 w-full justify-center">
-                      <button onClick={() => engine.acceptPass(player.id)} className="flex flex-1 justify-center items-center py-1.5 bg-emerald-500/20 text-emerald-400 font-medium hover:bg-emerald-500/30 rounded">Accept <Check size={16} className="ml-1" /></button>
-                      <button onClick={() => engine.rejectPass(player.id)} className="flex flex-1 justify-center items-center py-1.5 bg-red-500/20 text-red-400 font-medium hover:bg-red-500/30 rounded">Reject <X size={16} className="ml-1" /></button>
+                      <button onClick={() => engine.acceptPass(player.id)} className="flex flex-1 justify-center items-center py-1.5 bg-emerald-500/20 text-emerald-400 font-medium hover:bg-emerald-500/30 rounded">接收 <Check size={16} className="ml-1" /></button>
+                      <button onClick={() => engine.rejectPass(player.id)} className="flex flex-1 justify-center items-center py-1.5 bg-red-500/20 text-red-400 font-medium hover:bg-red-500/30 rounded">拒绝 <X size={16} className="ml-1" /></button>
                     </div>
                   </div>
                 )}
 
                 {isDying && gameState.dyingState?.playerId === player.id && (
                   <div className="mt-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg flex justify-between items-center">
-                    <span className="text-sm text-red-400 font-medium">Dying! Need save.</span>
-                    <button onClick={() => engine.confirmDeath(player.id)} className="px-3 py-1 bg-red-600 hover:bg-red-500 text-white text-sm rounded">Die</button>
+                    <span className="text-sm text-red-400 font-medium">濒死！需要救援。</span>
+                    <button onClick={() => engine.confirmDeath(player.id)} className="px-3 py-1 bg-red-600 hover:bg-red-500 text-white text-sm rounded">确认阵亡</button>
                   </div>
                 )}
               </div>
@@ -313,7 +315,7 @@ export default function App() {
       {/* Right Panel: Logs */}
       <div className="w-full md:w-80 border-l border-zinc-800 bg-zinc-900/30 flex flex-col h-screen">
         <div className="p-4 border-b border-zinc-800 flex justify-between items-center">
-          <h2 className="font-mono text-sm uppercase tracking-wider text-zinc-400">System Log</h2>
+          <h2 className="font-mono text-sm uppercase tracking-wider text-zinc-400">系统日志</h2>
           <label className="flex items-center gap-2 text-xs text-zinc-400 cursor-pointer hover:text-zinc-200 transition-colors">
             <input
               type="checkbox"
@@ -321,7 +323,7 @@ export default function App() {
               onChange={e => setAutoScroll(e.target.checked)}
               className="rounded bg-zinc-800 border-zinc-700 text-indigo-500 focus:ring-indigo-500/50"
             />
-            Auto-scroll
+            自动滚动
           </label>
         </div>
         <div className="flex-1 overflow-y-auto p-4 font-mono text-xs text-zinc-400 space-y-2">
