@@ -17,19 +17,19 @@ export class GameEngine {
       const factions = [Faction.FINGER, Faction.FINGER, Faction.THUMB, Faction.THUMB, Faction.BUS, Faction.MYSTERY];
       factions.sort(() => Math.random() - 0.5);
       players = [
-        { id: 'p1', name: '玩家 A', faction: factions[0], hand: [], field: [], state: PlayerState.ALIVE, hasPassed: false },
-        { id: 'p2', name: '玩家 B', faction: factions[1], hand: [], field: [], state: PlayerState.ALIVE, hasPassed: false },
-        { id: 'p3', name: '玩家 C', faction: factions[2], hand: [], field: [], state: PlayerState.ALIVE, hasPassed: false },
-        { id: 'p4', name: '玩家 D', faction: factions[3], hand: [], field: [], state: PlayerState.ALIVE, hasPassed: false },
-        { id: 'p5', name: '玩家 E', faction: factions[4], hand: [], field: [], state: PlayerState.ALIVE, hasPassed: false },
-        { id: 'p6', name: '玩家 F', faction: factions[5], hand: [], field: [], state: PlayerState.ALIVE, hasPassed: false },
+        { id: 'p1', name: '玩家 A', faction: factions[0], hand: [], field: [], state: PlayerState.ALIVE, hasPassed: false, isBot: false },
+        { id: 'p2', name: '玩家 B (AI)', faction: factions[1], hand: [], field: [], state: PlayerState.ALIVE, hasPassed: false, isBot: true },
+        { id: 'p3', name: '玩家 C (AI)', faction: factions[2], hand: [], field: [], state: PlayerState.ALIVE, hasPassed: false, isBot: true },
+        { id: 'p4', name: '玩家 D (AI)', faction: factions[3], hand: [], field: [], state: PlayerState.ALIVE, hasPassed: false, isBot: true },
+        { id: 'p5', name: '玩家 E (AI)', faction: factions[4], hand: [], field: [], state: PlayerState.ALIVE, hasPassed: false, isBot: true },
+        { id: 'p6', name: '玩家 F (AI)', faction: factions[5], hand: [], field: [], state: PlayerState.ALIVE, hasPassed: false, isBot: true },
       ];
     } else {
       players = [
-        { id: 'p1', name: '玩家 A', faction: Faction.THUMB, hand: [], field: [], state: PlayerState.ALIVE, hasPassed: false },
-        { id: 'p2', name: '玩家 B', faction: Faction.BUS, hand: [], field: [], state: PlayerState.ALIVE, hasPassed: false },
-        { id: 'p3', name: '玩家 C', faction: Faction.THUMB, hand: [], field: [], state: PlayerState.ALIVE, hasPassed: false },
-        { id: 'p4', name: '玩家 D', faction: Faction.BUS, hand: [], field: [], state: PlayerState.ALIVE, hasPassed: false },
+        { id: 'p1', name: '玩家 A', faction: Faction.THUMB, hand: [], field: [], state: PlayerState.ALIVE, hasPassed: false, isBot: false },
+        { id: 'p2', name: '玩家 B', faction: Faction.BUS, hand: [], field: [], state: PlayerState.ALIVE, hasPassed: false, isBot: false },
+        { id: 'p3', name: '玩家 C', faction: Faction.THUMB, hand: [], field: [], state: PlayerState.ALIVE, hasPassed: false, isBot: false },
+        { id: 'p4', name: '玩家 D', faction: Faction.BUS, hand: [], field: [], state: PlayerState.ALIVE, hasPassed: false, isBot: false },
       ];
     }
 
@@ -93,6 +93,7 @@ export class GameEngine {
       field: [],
       state: PlayerState.ALIVE,
       hasPassed: false,
+      isBot: false,
     };
     this.state.players.push(newPlayer);
     this.log(`GM 添加了新玩家: ${newPlayer.name}。`);

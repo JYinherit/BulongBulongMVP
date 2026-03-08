@@ -110,6 +110,78 @@ export default function App() {
     }
   }, [gameState?.logs, autoScroll]);
 
+  // AI Auto-play hook
+  useEffect(() => {
+    if (!gameState || !engine) return;
+    if (gameState.winner) return;
+    if (gameMode !== GameMode.RANDOM) return;
+
+    let timeoutId: NodeJS.Timeout;
+
+    // 1. If waiting for pass response from an AI
+    if (gameState.passState?.active) {
+      const targetPlayer = gameState.players.find(p => p.id === gameState.passState!.currentTargetId);
+      if (targetPlayer?.isBot) {
+        timeoutId = setTimeout(() => {
+          if (Math.random() > 0.5) {
+            engine.acceptPass(targetPlayer.id);
+          } else {
+            engine.rejectPass(targetPlayer.id);
+          }
+        }, 1500);
+        return () => clearTimeout(timeoutId);
+      }
+    }
+
+    // 2. If waiting for discard from an AI
+    if (gameState.discardState?.active) {
+      const targetPlayer = gameState.players.find(p => p.id === gameState.discardState!.playerId);
+      if (targetPlayer?.isBot) {
+        timeoutId = setTimeout(() => {
+          const count = gameState.discardState!.requiredCount;
+          // Discard random cards
+          const toDiscard = [...targetPlayer.hand].sort(() => Math.random() - 0.5).slice(0, count).map(c => c.id);
+          engine.discardCards(targetPlayer.id, toDiscard);
+        }, 1500);
+        return () => clearTimeout(timeoutId);
+      }
+    }
+
+    // 3. AI's turn to act or pass
+    const currentPlayer = gameState.players[gameState.currentPlayerIndex];
+    if (currentPlayer?.isBot && !gameState.passState && !gameState.discardState) {
+      timeoutId = setTimeout(() => {
+        if (gameState.currentPhase === TurnPhase.ACTION || gameState.currentPhase === TurnPhase.PASS) {
+          if (!currentPlayer.hasPassed && currentPlayer.hand.length > 0) {
+            const cardToPass = currentPlayer.hand[Math.floor(Math.random() * currentPlayer.hand.length)];
+            const methods = [PassMethod.SECRET, PassMethod.REPORT, PassMethod.DELIVER];
+            const method = methods[Math.floor(Math.random() * methods.length)];
+
+            if (method === PassMethod.DELIVER) {
+              const eligibleTargets = gameState.players.filter(p => p.id !== currentPlayer.id && p.state !== PlayerState.DEAD);
+              if (eligibleTargets.length > 0) {
+                const target = eligibleTargets[Math.floor(Math.random() * eligibleTargets.length)];
+                engine.initiatePass(cardToPass.id, method, target.id);
+              } else {
+                engine.nextPhase();
+              }
+            } else {
+              engine.initiatePass(cardToPass.id, method);
+            }
+          } else {
+            engine.nextPhase();
+          }
+        } else {
+          engine.nextPhase();
+        }
+      }, 1500);
+    }
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [gameState, engine, gameMode]);
+
   useEffect(() => {
     if (!gameState) return;
     const alivePlayers = gameState.players.filter(p => p.state !== PlayerState.DEAD);
@@ -122,7 +194,7 @@ export default function App() {
   if (!gameMode || !engine || !gameState) {
     return (
       <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center text-zinc-100 font-sans">
-        <h1 className="text-4xl font-bold tracking-tight mb-2">Dangerous Token MVP</h1>
+        <h1 className="text-4xl font-bold tracking-tight mb-2">BulongBulongMVP</h1>
         <p className="text-zinc-400 mb-8">选择游戏模式</p>
         <div className="flex gap-4">
           <button onClick={() => startGame(GameMode.RANDOM)} className="px-6 py-4 bg-indigo-600 hover:bg-indigo-500 rounded-xl flex flex-col items-center gap-2 transition-transform hover:scale-105">
@@ -158,7 +230,8 @@ export default function App() {
             {!gameState.winner && !gameState.passState && !gameState.dyingState && (
               <button
                 onClick={() => engine.nextPhase()}
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium transition-colors"
+                disabled={gameMode === GameMode.RANDOM && currentPlayer.isBot}
+                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg font-medium transition-colors"
               >
                 进入下一阶段
               </button>
@@ -341,7 +414,9 @@ export default function App() {
                         <option value="MYSTERY">MYSTERY</option>
                       </select>
                     ) : (
-                      <span className="text-xs px-2 py-1 rounded bg-zinc-800 text-zinc-400">{player.faction}</span>
+                      <span className="text-xs px-2 py-1 rounded bg-zinc-800 text-zinc-400">
+                        {gameMode === GameMode.RANDOM && player.isBot ? '???' : player.faction}
+                      </span>
                     )}
                     {isDying && <span className="text-xs px-2 py-1 rounded bg-red-500/20 text-red-400 animate-pulse">DYING</span>}
                     {isDead && <span className="text-xs px-2 py-1 rounded bg-zinc-800 text-zinc-500">DEAD</span>}
@@ -421,10 +496,10 @@ export default function App() {
                           }}
                         >
                           <div className={isDiscardTarget ? "ring-2 ring-indigo-500 rounded-md" : ""}>
-                            <CardView card={card} isGM={gameMode === GameMode.GM} onTrash={() => engine.destroyCard(card.id)} />
+                            <CardView card={card} hidden={gameMode === GameMode.RANDOM && player.isBot} isGM={gameMode === GameMode.GM} onTrash={() => engine.destroyCard(card.id)} />
                           </div>
                           {/* Actions overlay */}
-                          {!isDead && !gameState.passState && !gameState.discardState?.active && (
+                          {!isDead && !gameState.passState && !gameState.discardState?.active && !player.isBot && (
                             (gameMode === GameMode.GM && openGMCards.includes(card.id)) ||
                             (gameMode !== GameMode.GM && isCurrent && (gameState.currentPhase === TurnPhase.ACTION || gameState.currentPhase === TurnPhase.PASS) && !currentPlayer.hasPassed)
                           ) && (

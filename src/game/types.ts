@@ -24,6 +24,7 @@ export interface Player {
   field: Card[];
   state: PlayerState;
   hasPassed: boolean;
+  isBot?: boolean;
 }
 
 export interface PassState {
