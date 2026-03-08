@@ -269,7 +269,7 @@ export default function App() {
                                 {pendingDeliverCardId === card.id ? (
                                   <>
                                     <div className="text-[10px] text-zinc-300 font-medium mb-1 border-b border-zinc-700 w-full text-center pb-1">送给谁？</div>
-                                    <div className="flex flex-col gap-1 w-full px-2 overflow-y-auto" style={{ maxHeight: '140px' }}>
+                                    <div className="flex flex-col gap-1 w-full px-2 overflow-y-auto" style={{ maxHeight: '70px' }}>
                                       {gameState.players.filter(p => p.id !== player.id && p.state !== PlayerState.DEAD).map(p => (
                                         <button key={p.id} onClick={(e) => { e.stopPropagation(); engine.initiatePass(card.id, PassMethod.DELIVER, p.id); setPendingDeliverCardId(null); }} className="text-[10px] bg-indigo-600 hover:bg-indigo-500 py-0.5 rounded text-white truncate px-1">
                                           {p.name}
