@@ -3,6 +3,12 @@ import { GameEngine } from './game/engine';
 import { GameState, TurnPhase, PassMethod, PlayerState, CardProperty, GameMode, Zone } from './game/types';
 import { Shield, AlertTriangle, Star, Check, X, Skull, ArrowRight, Trash2 } from 'lucide-react';
 
+const CARD_PROPERTIES_CONFIG = [
+  { value: CardProperty.TOP_SECRET, label: '绝密', colorClass: 'text-red-400' },
+  { value: CardProperty.PRECIOUS, label: '珍贵', colorClass: 'text-blue-400' },
+  { value: CardProperty.DANGER, label: '危险', colorClass: 'text-zinc-400' },
+];
+
 export default function App() {
   const [gameMode, setGameMode] = useState<GameMode | null>(null);
   const [engine, setEngine] = useState<GameEngine | null>(null);
@@ -27,6 +33,16 @@ export default function App() {
 
   // GM Double Click Actions State
   const [openGMCards, setOpenGMCards] = useState<string[]>([]);
+
+  const toggleDealerProperty = (property: CardProperty, checked: boolean) => {
+    const prev = new Set(dealerProps);
+    if (checked) {
+      prev.add(property);
+    } else {
+      prev.delete(property);
+    }
+    setDealerProps(Array.from(prev));
+  };
 
   const startGame = (mode: GameMode) => {
     setGameMode(mode);
@@ -117,15 +133,16 @@ export default function App() {
                   ))}
                 </select>
                 <input type="text" placeholder="卡牌标题" value={dealerCardName} onChange={e => setDealerCardName(e.target.value)} className="bg-zinc-950 border border-zinc-700 rounded px-2 py-1 flex-1 min-w-[120px]" />
-                <label className="flex items-center gap-1 cursor-pointer"><input type="checkbox" checked={dealerProps.includes(CardProperty.TOP_SECRET)} onChange={e => {
-                  const prev = new Set(dealerProps); e.target.checked ? prev.add(CardProperty.TOP_SECRET) : prev.delete(CardProperty.TOP_SECRET); setDealerProps(Array.from(prev));
-                }} /> <span className="text-red-400">绝密</span></label>
-                <label className="flex items-center gap-1 cursor-pointer"><input type="checkbox" checked={dealerProps.includes(CardProperty.PRECIOUS)} onChange={e => {
-                  const prev = new Set(dealerProps); e.target.checked ? prev.add(CardProperty.PRECIOUS) : prev.delete(CardProperty.PRECIOUS); setDealerProps(Array.from(prev));
-                }} /> <span className="text-blue-400">珍贵</span></label>
-                <label className="flex items-center gap-1 cursor-pointer"><input type="checkbox" checked={dealerProps.includes(CardProperty.DANGER)} onChange={e => {
-                  const prev = new Set(dealerProps); e.target.checked ? prev.add(CardProperty.DANGER) : prev.delete(CardProperty.DANGER); setDealerProps(Array.from(prev));
-                }} /> <span className="text-zinc-400">危险</span></label>
+                {CARD_PROPERTIES_CONFIG.map(({ value, label, colorClass }) => (
+                  <label key={value} className="flex items-center gap-1 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={dealerProps.includes(value)}
+                      onChange={e => toggleDealerProperty(value, e.target.checked)}
+                    />
+                    <span className={colorClass}>{label}</span>
+                  </label>
+                ))}
                 <button disabled={dealerProps.length === 0} onClick={() => { engine.dealerGrantCard(dealerTarget, dealerCardName, dealerProps); setDealerCardName(''); }} className="px-3 py-1 bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white font-medium rounded transition-colors whitespace-nowrap">发给玩家</button>
                 <button onClick={() => engine.addPlayer()} className="px-3 py-1 bg-emerald-700 hover:bg-emerald-600 text-white font-medium rounded transition-colors whitespace-nowrap">➕ 增加玩家</button>
               </div>
